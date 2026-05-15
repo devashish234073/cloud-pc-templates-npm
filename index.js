@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+const { checkAndLoginOllamaCloud } = require('./handlers/ollamacloud');
+
 // Command tree structure
 const commandTree = {
   help: {
@@ -53,12 +55,11 @@ function aiDefault() {
 }
 
 // AI Login function
-function aiLogin(mode) {
-  console.log(`✓ AI Login initialized with mode: ${mode}`);
+async function aiLogin(mode) {
   if (mode === 'ollamacloud') {
-    console.log('  - Connecting to Ollama Cloud...');
-    console.log('  - Initializing cloud connection...');
+    await checkAndLoginOllamaCloud();
   } else if (mode === 'ollamalocal') {
+    console.log(`✓ AI Login initialized with mode: ${mode}`);
     console.log('  - Connecting to Ollama Local...');
     console.log('  - Initializing local connection...');
   }
@@ -80,11 +81,12 @@ function showAvailableOptions(node, path) {
 }
 
 // Function to traverse command tree and execute or show options
-function traverseCommandTree(args) {
-  let currentNode = commandTree;
-  let path = [];
+function traverseCommandTree(args, startNode, startPath = []) {
+  let currentNode = startNode;
+  let path = startPath;
   
-  for (let i = 0; i < args.length; i++) {
+  // Start from the second argument (first is already matched in processArgs)
+  for (let i = 1; i < args.length; i++) {
     let arg = args[i].replace(/^--/, ''); // Remove -- prefix
     
     // Check if current node has subcommands
@@ -106,8 +108,11 @@ function traverseCommandTree(args) {
   if (currentNode.subcommands) {
     showAvailableOptions(currentNode, path);
   } else if (currentNode.handler) {
-    // Execute the handler if available
-    currentNode.handler();
+    // Execute the handler if available (could be async)
+    const result = currentNode.handler();
+    if (result instanceof Promise) {
+      result.catch(err => console.error('Error:', err.message));
+    }
   } else {
     console.log('Command complete but no action defined');
   }
@@ -126,7 +131,7 @@ function processArgs() {
   let command = args[0].replace(/^--/, '');
   
   if (commandTree[command]) {
-    traverseCommandTree(args);
+    traverseCommandTree(args, commandTree[command], [command]);
   } else {
     console.log(`Unknown command: ${command}`);
     help();

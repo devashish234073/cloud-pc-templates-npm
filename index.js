@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 const { checkAndLoginOllamaCloud } = require('./handlers/ollamacloud');
+const { checkAndLoginOllamaLocal } = require('./handlers/ollamalocal');
+const { launchWebsite } = require('./handlers/launch');
 
 // Command tree structure
 const commandTree = {
@@ -31,6 +33,10 @@ const commandTree = {
         }
       }
     }
+  },
+  launch: {
+    description: 'Launch cloud-pc-templates.com in browser',
+    handler: () => launchWebsite()
   }
 };
 
@@ -43,6 +49,7 @@ function help() {
   console.log('  npx cloud-pc-templates help     Show this help message');
   console.log('  npx cloud-pc-templates --help   Show this help message');
   console.log('  npx cloud-pc-templates ai       Run AI function');
+  console.log('  npx cloud-pc-templates launch   Open website in browser');
   console.log('');
   console.log('AI Commands:');
   console.log('  npx cloud-pc-templates ai login loginMode ollamacloud');
@@ -59,9 +66,7 @@ async function aiLogin(mode) {
   if (mode === 'ollamacloud') {
     await checkAndLoginOllamaCloud();
   } else if (mode === 'ollamalocal') {
-    console.log(`✓ AI Login initialized with mode: ${mode}`);
-    console.log('  - Connecting to Ollama Local...');
-    console.log('  - Initializing local connection...');
+    await checkAndLoginOllamaLocal();
   }
 }
 

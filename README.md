@@ -114,6 +114,36 @@ $ npx cloud-pc-templates ai login loginMode ollamalocal
 - Runs proxy on port 3005
 - Provides detailed status output
 
+##### Hugging Face Login
+
+Connect to Hugging Face services:
+```bash
+npx cloud-pc-templates ai login loginMode huggingface
+```
+
+**What it does:**
+1. Prompts you to enter your Hugging Face API Key (masked input with asterisks)
+2. Downloads the Hugging Face proxy script from GitHub
+3. Runs the proxy on port 3006 with your API key
+4. Validates the proxy health endpoint
+5. Displays "Logged in" confirmation
+
+**Example:**
+```bash
+$ npx cloud-pc-templates ai login loginMode huggingface
+Enter Hugging Face API Key: ****************************
+✓ Logged in
+  - Endpoint checked: http://localhost:3006/health
+```
+
+**Features:**
+- Masked input for API key (shows `*` instead of actual characters)
+- Supports pasting long API keys
+- Backspace support for corrections
+- Runs proxy on port 3006
+- Real-time proxy output logging for debugging
+- Get your API key from: https://huggingface.co/settings/tokens
+
 ### Command Discovery
 
 The CLI features intelligent command discovery. If you don't provide all required arguments, it shows available options:
@@ -146,6 +176,7 @@ cloud-pc-templates/
 ├── handlers/
 │   ├── ollamacloud.js      # Ollama Cloud login functionality
 │   ├── ollamalocal.js      # Ollama Local login functionality
+│   ├── huggingface.js      # Hugging Face login functionality
 │   └── launch.js           # Website launcher
 ├── package.json            # Project metadata and bin configuration
 └── README.md               # This file
@@ -169,6 +200,12 @@ cloud-pc-templates/
 - `downloadAndRunProxy()`: Downloads and executes offline proxy script
 - `checkProxyHealth()`: Health check for the offline proxy
 - `checkAndLoginOllamaLocal()`: Main login orchestrator with warning system
+
+#### handlers/huggingface.js
+- `promptForApiKey()`: Interactive masked API key input
+- `checkHealthEndpoint()`: Health check for proxy server
+- `downloadAndRunProxy()`: Downloads and executes proxy script with API key
+- `checkAndLoginHuggingFace()`: Main login orchestrator
 
 #### handlers/launch.js
 - `openBrowser()`: Cross-platform browser launcher
@@ -291,6 +328,13 @@ When entering your API key:
   curl http://localhost:11434/api/tags
   ```
 - Ensure port 3005 is not in use by another application
+
+### Hugging Face login fails
+- Check that you have a valid Hugging Face API key
+- Get your API key from: https://huggingface.co/settings/tokens
+- Make sure your API key has the necessary permissions
+- Ensure port 3006 is not in use by another application
+- Check your internet connection for accessing Hugging Face services
 
 ### Browser won't open with `launch`
 - Ensure you have a default browser configured

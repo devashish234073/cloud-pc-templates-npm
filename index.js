@@ -2,6 +2,7 @@
 
 const { checkAndLoginOllamaCloud } = require('./handlers/ollamacloud');
 const { checkAndLoginOllamaLocal } = require('./handlers/ollamalocal');
+const { checkAndLoginHuggingFace } = require('./handlers/huggingface');
 const { launchWebsite } = require('./handlers/launch');
 
 // Command tree structure
@@ -27,6 +28,10 @@ const commandTree = {
               ollamalocal: {
                 description: 'Connect to Ollama Local',
                 handler: () => aiLogin('ollamalocal')
+              },
+              huggingface: {
+                description: 'Connect to Hugging Face',
+                handler: () => aiLogin('huggingface')
               }
             }
           }
@@ -54,6 +59,7 @@ function help() {
   console.log('AI Commands:');
   console.log('  npx cloud-pc-templates ai login loginMode ollamacloud');
   console.log('  npx cloud-pc-templates ai login loginMode ollamalocal');
+  console.log('  npx cloud-pc-templates ai login loginMode huggingface');
 }
 
 // Default AI function
@@ -67,6 +73,8 @@ async function aiLogin(mode) {
     await checkAndLoginOllamaCloud();
   } else if (mode === 'ollamalocal') {
     await checkAndLoginOllamaLocal();
+  } else if (mode === 'huggingface') {
+    await checkAndLoginHuggingFace();
   }
 }
 

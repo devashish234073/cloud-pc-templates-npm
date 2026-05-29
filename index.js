@@ -4,6 +4,7 @@ const { checkAndLoginOllamaCloud } = require('./handlers/ollamacloud');
 const { checkAndLoginOllamaLocal } = require('./handlers/ollamalocal');
 const { checkAndLoginHuggingFace } = require('./handlers/huggingface');
 const { launchWebsite } = require('./handlers/launch');
+const { listAgents, getAgentDetails } = require('./handlers/agents');
 
 // Command tree structure
 const commandTree = {
@@ -36,6 +37,11 @@ const commandTree = {
             }
           }
         }
+      },
+      agents: {
+        description: 'Manage AI agents',
+        handler: aiAgents,
+        dynamic: true
       }
     }
   },
@@ -60,6 +66,8 @@ function help() {
   console.log('  npx cloud-pc-templates ai login loginMode ollamacloud');
   console.log('  npx cloud-pc-templates ai login loginMode ollamalocal');
   console.log('  npx cloud-pc-templates ai login loginMode huggingface');
+  console.log('  npx cloud-pc-templates ai agents list                           List all available agents');
+  console.log('  npx cloud-pc-templates ai agents "agent-name"                   Show agent details');
 }
 
 // Default AI function
@@ -75,6 +83,24 @@ async function aiLogin(mode) {
     await checkAndLoginOllamaLocal();
   } else if (mode === 'huggingface') {
     await checkAndLoginHuggingFace();
+  }
+}
+
+// AI Agents function
+async function aiAgents(remainingArgs) {
+  if (!remainingArgs || remainingArgs.length === 0) {
+    console.log('Usage: npx cloud-pc-templates ai agents <list|agent-name>');
+    console.log('  list               List all available agents');
+    console.log('  "agent-name"       Show details for a specific agent');
+    return;
+  }
+  
+  const subcommand = remainingArgs[0].toLowerCase();
+  
+  if (subcommand === 'list') {
+    await listAgents();
+  } else {
+    await getAgentDetails(remainingArgs[0]);
   }
 }
 
@@ -97,15 +123,27 @@ function showAvailableOptions(node, path) {
 function traverseCommandTree(args, startNode, startPath = []) {
   let currentNode = startNode;
   let path = startPath;
+  let argIndex = 1; // Start from the second argument (first is already matched in processArgs)
   
-  // Start from the second argument (first is already matched in processArgs)
-  for (let i = 1; i < args.length; i++) {
-    let arg = args[i].replace(/^--/, ''); // Remove -- prefix
+  // Normal command tree traversal
+  while (argIndex < args.length) {
+    let arg = args[argIndex].replace(/^--/, ''); // Remove -- prefix
+    
+    // Check if current node is dynamic, if so pass remaining args to handler
+    if (currentNode.dynamic && currentNode.handler) {
+      const remainingArgs = args.slice(argIndex);
+      const result = currentNode.handler(remainingArgs);
+      if (result instanceof Promise) {
+        result.catch(err => console.error('Error:', err.message));
+      }
+      return;
+    }
     
     // Check if current node has subcommands
     if (currentNode.subcommands && currentNode.subcommands[arg]) {
       currentNode = currentNode.subcommands[arg];
       path.push(arg);
+      argIndex++;
     } else if (arg === 'help' || arg === '--help') {
       showAvailableOptions(currentNode, path);
       return;
@@ -117,6 +155,16 @@ function traverseCommandTree(args, startNode, startPath = []) {
   }
   
   // At this point, we've traversed all provided arguments
+  // Check if current node is dynamic and we've consumed all args
+  if (currentNode.dynamic && currentNode.handler) {
+    const remainingArgs = [];
+    const result = currentNode.handler(remainingArgs);
+    if (result instanceof Promise) {
+      result.catch(err => console.error('Error:', err.message));
+    }
+    return;
+  }
+  
   // Check if we have subcommands available but user didn't provide all args
   if (currentNode.subcommands) {
     showAvailableOptions(currentNode, path);

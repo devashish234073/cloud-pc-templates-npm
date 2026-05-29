@@ -106,6 +106,50 @@ Enter Hugging Face API Key: ****************************
   - Endpoint checked: http://localhost:3006/health
 ```
 
+#### AI Agents
+
+Manage and explore available AI agents from the registry.
+
+**Agent Registry URL:**
+```
+https://raw.githubusercontent.com/devashish234073/cloud-pc-templates-marketplace/refs/heads/main/JS-AGENTS/agent-registry.json
+```
+
+##### List All Agents
+
+Display all available agents with their IDs, names, and ports:
+```bash
+npx cloud-pc-templates ai agents list
+```
+
+**Example output:**
+```bash
+$ npx cloud-pc-templates ai agents list
+
+Available Agents
+
+────────────────────────────────────────────────────────────────────────────────
+ID: playwright connector
+Name: Playwright Connector
+Port: 3036
+────────────────────────────────────────────────────────────────────────────────
+ID: mysql connector
+Name: MySQL Connector
+Port: 3037
+────────────────────────────────────────────────────────────────────────────────
+ID: angular connector
+Name: Angular Connector
+Port: 3034
+────────────────────────────────────────────────────────────────────────────────
+```
+
+##### Get Agent Details
+
+Display complete information for a specific agent:
+```bash
+npx cloud-pc-templates ai agents "agent-id"
+```
+
 ### Command Discovery
 
 The CLI features intelligent command discovery. If you don't provide all required arguments, it shows available options:
@@ -139,6 +183,7 @@ cloud-pc-templates/
 │   ├── ollamacloud.js      # Ollama Cloud login functionality
 │   ├── ollamalocal.js      # Ollama Local login functionality
 │   ├── huggingface.js      # Hugging Face login functionality
+│   ├── agents.js           # AI agents registry management
 │   └── launch.js           # Website launcher
 ├── package.json            # Project metadata and bin configuration
 └── README.md               # This file

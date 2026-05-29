@@ -4,6 +4,7 @@ const LOGIN_MODES = [
     port: 3003,
     healthPath: '/health',
     modelsPath: '/v1/models',
+    chatPath: '/v1/chat/completions',
     description: 'Hugging Face proxy',
     loginDescription: 'Connect to Hugging Face'
   },
@@ -12,6 +13,7 @@ const LOGIN_MODES = [
     port: 3004,
     healthPath: '/health',
     modelsPath: '/v1/models',
+    chatPath: '/v1/chat/completions',
     description: 'Ollama Cloud proxy',
     loginDescription: 'Connect to Ollama Cloud'
   },
@@ -20,6 +22,7 @@ const LOGIN_MODES = [
     port: 3005,
     healthPath: '/health',
     modelsPath: '/v1/models',
+    chatPath: '/v1/chat/completions',
     description: 'Ollama Local proxy',
     loginDescription: 'Connect to Ollama Local'
   }

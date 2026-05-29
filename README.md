@@ -150,7 +150,7 @@ List models for one login mode:
 npx cloud-pc-templates ai chat ollamalocal
 ```
 
-Validate a model name:
+Validate a model name and start interactive chat:
 ```bash
 npx cloud-pc-templates ai chat ollamalocal qwen3:0.6b
 ```
@@ -158,7 +158,9 @@ npx cloud-pc-templates ai chat ollamalocal qwen3:0.6b
 **What it does:**
 1. `ai chat` shows the currently supported login modes.
 2. `ai chat <loginmode>` calls that login mode's `/v1/models` endpoint and lists model IDs from the response `data` array.
-3. `ai chat <loginmode> <model-name>` checks that login mode's `/v1/models` endpoint and returns success only when the model exists.
+3. `ai chat <loginmode> <model-name>` checks that login mode's `/v1/models` endpoint and starts an interactive chat when the model exists.
+4. Each question is sent to `/v1/chat/completions` with the full in-memory conversation history.
+5. Enter `quit`, `exit`, `bye`, or `done` to leave interactive chat.
 
 **Example model listing:**
 ```bash
@@ -171,10 +173,18 @@ Endpoint: http://localhost:3005/v1/models
 Run: npx cloud-pc-templates ai chat ollamalocal <model-name>
 ```
 
-**Example model validation:**
+**Example interactive chat:**
 ```bash
 $ npx cloud-pc-templates ai chat ollamalocal qwen3:0.6b
 ✓ Model "qwen3:0.6b" is available for ollamalocal.
+
+Interactive chat started for ollamalocal/qwen3:0.6b.
+Type quit, exit, bye, or done to end.
+
+You: HI
+Assistant: Hi there! How can I assist you today? 😊
+You: done
+Chat ended.
 ```
 
 #### AI Agents
@@ -284,7 +294,7 @@ The login commands include automatic health checking:
 The chat command discovers models through the active login mode proxies:
 - `ai chat` lists supported login modes from the shared login mode configuration
 - `ai chat <loginmode>` reads `http://localhost:<port>/v1/models`
-- `ai chat <loginmode> <model-name>` validates the model before reporting success
+- `ai chat <loginmode> <model-name>` validates the model and sends questions to `http://localhost:<port>/v1/chat/completions`
 
 ### Intelligent Command Discovery
 The CLI provides helpful feedback when commands are incomplete:

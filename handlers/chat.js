@@ -1,5 +1,8 @@
 const http = require('http');
+const readline = require('readline');
 const { getEndpoint, getLoginMode, getLoginModes } = require('./loginModes');
+
+const EXIT_COMMANDS = new Set(['quit', 'exit', 'bye', 'done']);
 
 function fetchJson(endpoint, timeoutMs = 3000) {
   return new Promise((resolve, reject) => {
@@ -104,7 +107,7 @@ async function validateModel(loginMode, modelName) {
 
     if (models.includes(modelName)) {
       console.log(`✓ Model "${modelName}" is available for ${loginMode.mode}.`);
-      return;
+      return true;
     }
 
     console.error(`Error: "${modelName}" is not a valid model for ${loginMode.mode}.`);
@@ -120,10 +123,210 @@ async function validateModel(loginMode, modelName) {
     }
 
     process.exitCode = 1;
+    return false;
   } catch (error) {
     console.error(`Error validating model for ${loginMode.mode}: ${error.message}`);
     console.error(`Endpoint: ${getEndpoint(loginMode, 'modelsPath')}`);
     process.exitCode = 1;
+    return false;
+  }
+}
+
+function createPrompt() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  let closed = false;
+  let pendingResolve = null;
+
+  rl.on('close', () => {
+    closed = true;
+
+    if (pendingResolve) {
+      pendingResolve(null);
+      pendingResolve = null;
+    }
+  });
+
+  return {
+    ask(question) {
+      return new Promise((resolve) => {
+        if (closed) {
+          resolve(null);
+          return;
+        }
+
+        pendingResolve = resolve;
+        rl.question(question, (answer) => {
+          pendingResolve = null;
+          resolve(answer);
+        });
+      });
+    },
+    close() {
+      if (!closed) {
+        rl.close();
+      }
+    }
+  };
+}
+
+function parseStreamChunk(chunk, onContent) {
+  const lines = chunk.split(/\r?\n/);
+
+  lines.forEach((line) => {
+    const trimmedLine = line.trim();
+
+    if (!trimmedLine.startsWith('data:')) {
+      return;
+    }
+
+    const payload = trimmedLine.slice(5).trim();
+
+    if (!payload || payload === '[DONE]') {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(payload);
+      const content = parsed.choices && parsed.choices[0] && parsed.choices[0].delta && parsed.choices[0].delta.content;
+
+      if (content) {
+        onContent(content);
+      }
+    } catch (error) {
+      // Ignore incomplete stream fragments; the next chunk may complete them.
+    }
+  });
+}
+
+function sendChatCompletion(loginMode, modelName, messages) {
+  return new Promise((resolve, reject) => {
+    const endpoint = new URL(getEndpoint(loginMode, 'chatPath'));
+    const payload = JSON.stringify({
+      model: modelName,
+      messages,
+      temperature: 0.5,
+      top_p: 0.7,
+      stream: true
+    });
+
+    const request = http.request(
+      {
+        hostname: endpoint.hostname,
+        port: endpoint.port,
+        path: endpoint.pathname,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload)
+        }
+      },
+      (res) => {
+        let assistantResponse = '';
+        let buffer = '';
+
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          let errorBody = '';
+
+          res.setEncoding('utf8');
+          res.on('data', (chunk) => {
+            errorBody += chunk;
+          });
+          res.on('end', () => {
+            reject(new Error(`Request failed with status ${res.statusCode}${errorBody ? `: ${errorBody}` : ''}`));
+          });
+          return;
+        }
+
+        res.setEncoding('utf8');
+        res.on('data', (chunk) => {
+          buffer += chunk;
+
+          const lastSeparator = buffer.lastIndexOf('\n\n');
+          if (lastSeparator === -1) {
+            return;
+          }
+
+          const completeChunk = buffer.slice(0, lastSeparator);
+          buffer = buffer.slice(lastSeparator + 2);
+
+          parseStreamChunk(completeChunk, (content) => {
+            assistantResponse += content;
+            process.stdout.write(content);
+          });
+        });
+        res.on('end', () => {
+          if (buffer.trim()) {
+            parseStreamChunk(buffer, (content) => {
+              assistantResponse += content;
+              process.stdout.write(content);
+            });
+          }
+
+          process.stdout.write('\n');
+          resolve(assistantResponse);
+        });
+      }
+    );
+
+    request.on('error', reject);
+    request.write(payload);
+    request.end();
+  });
+}
+
+async function startInteractiveChat(loginMode, modelName) {
+  const prompt = createPrompt();
+  const messages = [];
+
+  console.log('');
+  console.log(`Interactive chat started for ${loginMode.mode}/${modelName}.`);
+  console.log('Type quit, exit, bye, or done to end.');
+  console.log('');
+
+  try {
+    while (true) {
+      const question = await prompt.ask('You: ');
+
+      if (question === null) {
+        console.log('Chat ended.');
+        break;
+      }
+
+      const trimmedQuestion = question.trim();
+
+      if (EXIT_COMMANDS.has(trimmedQuestion.toLowerCase())) {
+        console.log('Chat ended.');
+        break;
+      }
+
+      if (!trimmedQuestion) {
+        continue;
+      }
+
+      messages.push({
+        role: 'user',
+        content: trimmedQuestion
+      });
+
+      process.stdout.write('Assistant: ');
+
+      try {
+        const assistantResponse = await sendChatCompletion(loginMode, modelName, messages);
+
+        messages.push({
+          role: 'assistant',
+          content: assistantResponse
+        });
+      } catch (error) {
+        messages.pop();
+        console.error(`Error: ${error.message}`);
+      }
+    }
+  } finally {
+    prompt.close();
   }
 }
 
@@ -150,7 +353,11 @@ async function aiChat(remainingArgs) {
   }
 
   const modelName = remainingArgs.slice(1).join(' ');
-  await validateModel(loginMode, modelName);
+  const isValidModel = await validateModel(loginMode, modelName);
+
+  if (isValidModel) {
+    await startInteractiveChat(loginMode, modelName);
+  }
 }
 
 module.exports = {
@@ -158,6 +365,8 @@ module.exports = {
   fetchJson,
   getModelsForLoginMode,
   parseModels,
+  sendChatCompletion,
   showLoginModes,
+  startInteractiveChat,
   validateModel
 };

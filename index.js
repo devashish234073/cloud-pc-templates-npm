@@ -68,7 +68,7 @@ function help() {
   });
   console.log('  npx cloud-pc-templates ai chat                            List available login modes for chat');
   console.log('  npx cloud-pc-templates ai chat <loginmode>                 List models for a login mode');
-  console.log('  npx cloud-pc-templates ai chat <loginmode> <model-name>    Validate a chat model');
+  console.log('  npx cloud-pc-templates ai chat <loginmode> <model-name>    Start interactive chat');
   console.log('  npx cloud-pc-templates ai agents list                           List all available agents');
   console.log('  npx cloud-pc-templates ai agents "agent-name"                   Show agent details');
 }

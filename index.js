@@ -3,6 +3,7 @@
 const { checkAndLoginOllamaCloud } = require('./handlers/ollamacloud');
 const { checkAndLoginOllamaLocal } = require('./handlers/ollamalocal');
 const { checkAndLoginHuggingFace } = require('./handlers/huggingface');
+const { checkLoginHealth } = require('./handlers/loginHealth');
 const { launchWebsite } = require('./handlers/launch');
 const { listAgents, getAgentDetails } = require('./handlers/agents');
 
@@ -19,6 +20,10 @@ const commandTree = {
       login: {
         description: 'Login to AI service',
         subcommands: {
+          health: {
+            description: 'Check available login mode ports',
+            handler: checkLoginHealth
+          },
           loginMode: {
             description: 'Specify login mode',
             subcommands: {
@@ -63,6 +68,7 @@ function help() {
   console.log('  npx cloud-pc-templates launch   Open website in browser');
   console.log('');
   console.log('AI Commands:');
+  console.log('  npx cloud-pc-templates ai login health');
   console.log('  npx cloud-pc-templates ai login loginMode ollamacloud');
   console.log('  npx cloud-pc-templates ai login loginMode ollamalocal');
   console.log('  npx cloud-pc-templates ai login loginMode huggingface');

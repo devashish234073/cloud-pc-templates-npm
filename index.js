@@ -4,6 +4,8 @@ const { checkAndLoginOllamaCloud } = require('./handlers/ollamacloud');
 const { checkAndLoginOllamaLocal } = require('./handlers/ollamalocal');
 const { checkAndLoginHuggingFace } = require('./handlers/huggingface');
 const { checkLoginHealth } = require('./handlers/loginHealth');
+const { getLoginModes } = require('./handlers/loginModes');
+const { aiChat } = require('./handlers/chat');
 const { launchWebsite } = require('./handlers/launch');
 const { listAgents, getAgentDetails } = require('./handlers/agents');
 
@@ -26,22 +28,14 @@ const commandTree = {
           },
           loginMode: {
             description: 'Specify login mode',
-            subcommands: {
-              ollamacloud: {
-                description: 'Connect to Ollama Cloud',
-                handler: () => aiLogin('ollamacloud')
-              },
-              ollamalocal: {
-                description: 'Connect to Ollama Local',
-                handler: () => aiLogin('ollamalocal')
-              },
-              huggingface: {
-                description: 'Connect to Hugging Face',
-                handler: () => aiLogin('huggingface')
-              }
-            }
+            subcommands: buildLoginModeSubcommands()
           }
         }
+      },
+      chat: {
+        description: 'List or validate AI chat models',
+        handler: aiChat,
+        dynamic: true
       },
       agents: {
         description: 'Manage AI agents',
@@ -69,11 +63,25 @@ function help() {
   console.log('');
   console.log('AI Commands:');
   console.log('  npx cloud-pc-templates ai login health');
-  console.log('  npx cloud-pc-templates ai login loginMode ollamacloud');
-  console.log('  npx cloud-pc-templates ai login loginMode ollamalocal');
-  console.log('  npx cloud-pc-templates ai login loginMode huggingface');
+  getLoginModes().forEach((loginMode) => {
+    console.log(`  npx cloud-pc-templates ai login loginMode ${loginMode.mode}`);
+  });
+  console.log('  npx cloud-pc-templates ai chat                            List available login modes for chat');
+  console.log('  npx cloud-pc-templates ai chat <loginmode>                 List models for a login mode');
+  console.log('  npx cloud-pc-templates ai chat <loginmode> <model-name>    Validate a chat model');
   console.log('  npx cloud-pc-templates ai agents list                           List all available agents');
   console.log('  npx cloud-pc-templates ai agents "agent-name"                   Show agent details');
+}
+
+function buildLoginModeSubcommands() {
+  return getLoginModes().reduce((subcommands, loginMode) => {
+    subcommands[loginMode.mode] = {
+      description: loginMode.loginDescription,
+      handler: () => aiLogin(loginMode.mode)
+    };
+
+    return subcommands;
+  }, {});
 }
 
 // Default AI function

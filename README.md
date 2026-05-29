@@ -138,6 +138,45 @@ Enter Hugging Face API Key: ****************************
   - Endpoint checked: http://localhost:3003/health
 ```
 
+#### AI Chat
+
+List available chat login modes:
+```bash
+npx cloud-pc-templates ai chat
+```
+
+List models for one login mode:
+```bash
+npx cloud-pc-templates ai chat ollamalocal
+```
+
+Validate a model name:
+```bash
+npx cloud-pc-templates ai chat ollamalocal qwen3:0.6b
+```
+
+**What it does:**
+1. `ai chat` shows the currently supported login modes.
+2. `ai chat <loginmode>` calls that login mode's `/v1/models` endpoint and lists model IDs from the response `data` array.
+3. `ai chat <loginmode> <model-name>` checks that login mode's `/v1/models` endpoint and returns success only when the model exists.
+
+**Example model listing:**
+```bash
+$ npx cloud-pc-templates ai chat ollamalocal
+Available models for ollamalocal:
+Endpoint: http://localhost:3005/v1/models
+
+  - qwen3:0.6b
+
+Run: npx cloud-pc-templates ai chat ollamalocal <model-name>
+```
+
+**Example model validation:**
+```bash
+$ npx cloud-pc-templates ai chat ollamalocal qwen3:0.6b
+✓ Model "qwen3:0.6b" is available for ollamalocal.
+```
+
 #### AI Agents
 
 Manage and explore available AI agents from the registry.
@@ -191,6 +230,8 @@ $ npx cloud-pc-templates ai
 Available options for: npx cloud-pc-templates ai
 
   login                - Login to AI service
+  chat                 - List or validate AI chat models
+  agents               - Manage AI agents
 
 $ npx cloud-pc-templates ai login
 Available options for: npx cloud-pc-templates ai login
@@ -201,9 +242,9 @@ Available options for: npx cloud-pc-templates ai login
 $ npx cloud-pc-templates ai login loginMode
 Available options for: npx cloud-pc-templates ai login loginMode
 
+  huggingface         - Connect to Hugging Face
   ollamacloud         - Connect to Ollama Cloud
   ollamalocal         - Connect to Ollama Local
-  huggingface         - Connect to Hugging Face
 ```
 
 ## Architecture
@@ -217,6 +258,8 @@ cloud-pc-templates/
 │   ├── ollamacloud.js      # Ollama Cloud login functionality
 │   ├── ollamalocal.js      # Ollama Local login functionality
 │   ├── huggingface.js      # Hugging Face login functionality
+│   ├── chat.js             # AI chat model listing and validation
+│   ├── loginModes.js       # Shared login mode configuration
 │   ├── loginHealth.js      # Login mode health checks
 │   ├── agents.js           # AI agents registry management
 │   └── launch.js           # Website launcher
@@ -237,6 +280,12 @@ The login commands include automatic health checking:
 - Endpoint information is printed for debugging
 - Proxy process output is shown when a login command starts a service
 
+### Chat Model Discovery
+The chat command discovers models through the active login mode proxies:
+- `ai chat` lists supported login modes from the shared login mode configuration
+- `ai chat <loginmode>` reads `http://localhost:<port>/v1/models`
+- `ai chat <loginmode> <model-name>` validates the model before reporting success
+
 ### Intelligent Command Discovery
 The CLI provides helpful feedback when commands are incomplete:
 - Shows available options at each level
@@ -248,6 +297,8 @@ The CLI provides helpful feedback when commands are incomplete:
 ### File Structure
 ```
 handlers/
+├── chat.js                # AI chat model listing and validation
+├── loginModes.js          # Shared login mode configuration
 ├── ollamacloud.js         # Ollama Cloud specific logic
 ├── loginHealth.js         # Login health check logic
 └── launch.js              # Launch specific logic

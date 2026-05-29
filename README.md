@@ -42,6 +42,38 @@ This command will open `https://cloud-pc-templates.com` in your browser.
 
 The AI module provides login functionality for different cloud providers.
 
+##### Login Health
+
+Check which login mode proxy ports are currently available:
+```bash
+npx cloud-pc-templates ai login health
+```
+
+**What it does:**
+1. Checks the health endpoints for all supported login modes without starting any proxy or prompting for API keys.
+2. Shows whether each login mode is available on localhost.
+
+**Ports checked:**
+- Hugging Face: `http://localhost:3003/health`
+- Ollama Cloud: `http://localhost:3004/health`
+- Ollama Local: `http://localhost:3005/health`
+
+**Example:**
+```bash
+$ npx cloud-pc-templates ai login health
+AI login health
+
+✓ huggingface  available
+  - Hugging Face proxy
+  - http://localhost:3003/health
+✗ ollamacloud  unavailable
+  - Ollama Cloud proxy
+  - http://localhost:3004/health
+✗ ollamalocal  unavailable
+  - Ollama Local proxy
+  - http://localhost:3005/health
+```
+
 ##### Ollama Cloud Login
 
 Connect to Ollama Cloud:
@@ -103,7 +135,7 @@ npx cloud-pc-templates ai login loginMode huggingface
 $ npx cloud-pc-templates ai login loginMode huggingface
 Enter Hugging Face API Key: ****************************
 ✓ Logged in
-  - Endpoint checked: http://localhost:3006/health
+  - Endpoint checked: http://localhost:3003/health
 ```
 
 #### AI Agents
@@ -163,6 +195,7 @@ Available options for: npx cloud-pc-templates ai
 $ npx cloud-pc-templates ai login
 Available options for: npx cloud-pc-templates ai login
 
+  health              - Check available login mode ports
   loginMode           - Specify login mode
 
 $ npx cloud-pc-templates ai login loginMode
@@ -170,6 +203,7 @@ Available options for: npx cloud-pc-templates ai login loginMode
 
   ollamacloud         - Connect to Ollama Cloud
   ollamalocal         - Connect to Ollama Local
+  huggingface         - Connect to Hugging Face
 ```
 
 ## Architecture
@@ -183,6 +217,7 @@ cloud-pc-templates/
 │   ├── ollamacloud.js      # Ollama Cloud login functionality
 │   ├── ollamalocal.js      # Ollama Local login functionality
 │   ├── huggingface.js      # Hugging Face login functionality
+│   ├── loginHealth.js      # Login mode health checks
 │   ├── agents.js           # AI agents registry management
 │   └── launch.js           # Website launcher
 ├── package.json            # Project metadata and bin configuration
@@ -196,10 +231,11 @@ The launch command works on:
 - Android/Termux (uses `termux-open` with fallback to `xdg-open`)
 
 ### Health Check System
-The Ollama Cloud login includes automatic health checking:
-- Validates server is ready before completing login
-- Provides endpoint information for debugging
-- Includes detailed output from proxy process
+The login commands include automatic health checking:
+- `ai login health` checks Hugging Face, Ollama Cloud, and Ollama Local proxy ports
+- Login commands validate the proxy server before completing login
+- Endpoint information is printed for debugging
+- Proxy process output is shown when a login command starts a service
 
 ### Intelligent Command Discovery
 The CLI provides helpful feedback when commands are incomplete:
@@ -213,6 +249,7 @@ The CLI provides helpful feedback when commands are incomplete:
 ```
 handlers/
 ├── ollamacloud.js         # Ollama Cloud specific logic
+├── loginHealth.js         # Login health check logic
 └── launch.js              # Launch specific logic
 ```
 

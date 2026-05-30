@@ -63,15 +63,13 @@ npx cloud-pc-templates ai login health
 $ npx cloud-pc-templates ai login health
 AI login health
 
-✓ huggingface  available
-  - Hugging Face proxy
-  - http://localhost:3003/health
-✗ ollamacloud  unavailable
-  - Ollama Cloud proxy
-  - http://localhost:3004/health
-✗ ollamalocal  unavailable
-  - Ollama Local proxy
-  - http://localhost:3005/health
++-------------+---------------+--------------------+------------------------------+
+| Mode        | Status        | Description        | Health Endpoint              |
++-------------+---------------+--------------------+------------------------------+
+| huggingface | ✓ available   | Hugging Face proxy | http://localhost:3003/health |
+| ollamacloud | ✗ unavailable | Ollama Cloud proxy | http://localhost:3004/health |
+| ollamalocal | ✗ unavailable | Ollama Local proxy | http://localhost:3005/health |
++-------------+---------------+--------------------+------------------------------+
 ```
 
 ##### Ollama Cloud Login

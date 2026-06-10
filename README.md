@@ -229,6 +229,41 @@ Display complete information for a specific agent:
 npx cloud-pc-templates ai agents "agent-id"
 ```
 
+##### Start All Agents
+
+Download, set up, and start all agents on a supported platform:
+
+```bash
+npx cloud-pc-templates ai agents startAllOn <platform>
+```
+
+**Supported platforms:**
+
+| Platform  | Command | Description |
+|-----------|---------|-------------|
+| `linux`   | `npx cloud-pc-templates ai agents startAllOn linux` | Downloads and runs `setup_and_run.sh`. Requires `bash` and an Ubuntu/Debian-based system. |
+| `android` | `npx cloud-pc-templates ai agents startAllOn android` | Downloads and runs `setup_and_run_in_termux.sh` for Termux on Android. Requires `bash`. |
+| `docker`  | `npx cloud-pc-templates ai agents startAllOn docker` | Runs the pre-built Docker image `devashish234073/cloud-pc-templates-agents` with ports 3005–3050 and 4200 mapped. Requires `docker`. |
+
+**Linux example:**
+```bash
+$ npx cloud-pc-templates ai agents startAllOn linux
+✓ bash found. Downloading and running setup_and_run.sh...
+
+==========================================
+Cloud PC Templates Agents Setup
+==========================================
+...
+```
+
+**Docker example:**
+```bash
+$ npx cloud-pc-templates ai agents startAllOn docker
+✓ docker found. Starting agents container...
+```
+
+> **Note:** If you are on an unsupported platform (e.g. Windows), use the `docker` option to run the agents via a container.
+
 ### Command Discovery
 
 The CLI features intelligent command discovery. If you don't provide all required arguments, it shows available options:

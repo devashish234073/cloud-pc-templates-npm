@@ -7,7 +7,7 @@ const { checkLoginHealth } = require('./handlers/loginHealth');
 const { getLoginModes } = require('./handlers/loginModes');
 const { aiChat } = require('./handlers/chat');
 const { launchWebsite } = require('./handlers/launch');
-const { listAgents, getAgentDetails } = require('./handlers/agents');
+const { listAgents, getAgentDetails, startAllOnAgents } = require('./handlers/agents');
 
 // Command tree structure
 const commandTree = {
@@ -71,6 +71,9 @@ function help() {
   console.log('  npx cloud-pc-templates ai chat <loginmode> <model-name>    Start interactive chat');
   console.log('  npx cloud-pc-templates ai agents list                           List all available agents');
   console.log('  npx cloud-pc-templates ai agents "agent-name"                   Show agent details');
+  console.log('  npx cloud-pc-templates ai agents startAllOn linux                 Download and start all agents (Linux)');
+  console.log('  npx cloud-pc-templates ai agents startAllOn android               Download and start all agents (Termux/Android)');
+  console.log('  npx cloud-pc-templates ai agents startAllOn docker                Start all agents via Docker container');
 }
 
 function buildLoginModeSubcommands() {
@@ -103,8 +106,11 @@ async function aiLogin(mode) {
 // AI Agents function
 async function aiAgents(remainingArgs) {
   if (!remainingArgs || remainingArgs.length === 0) {
-    console.log('Usage: npx cloud-pc-templates ai agents <list|agent-name>');
+    console.log('Usage: npx cloud-pc-templates ai agents <list|startAllOn|agent-name>');
     console.log('  list               List all available agents');
+    console.log('  startAllOn linux     Download and start all agents (Linux)');
+    console.log('  startAllOn android   Download and start all agents (Termux/Android)');
+    console.log('  startAllOn docker    Start all agents via Docker container');
     console.log('  "agent-name"       Show details for a specific agent');
     return;
   }
@@ -113,6 +119,8 @@ async function aiAgents(remainingArgs) {
   
   if (subcommand === 'list') {
     await listAgents();
+  } else if (subcommand === 'startallon') {
+    await startAllOnAgents(remainingArgs[1]);
   } else {
     await getAgentDetails(remainingArgs[0]);
   }

@@ -103,8 +103,9 @@ async function startAllOnAgents(platform) {
 
   if (platformLower === 'linux' || platformLower === 'android') {
     // Check if bash exists
+    const bashCmd = process.platform === 'win32' ? 'where bash' : 'which bash';
     try {
-      execSync('which bash', { stdio: 'ignore' });
+      execSync(bashCmd, { stdio: 'ignore' });
     } catch (err) {
       console.error('❌ bash not found.');
       console.error('   This command is meant for Linux only that has bash.');
@@ -165,8 +166,9 @@ async function startAllOnAgents(platform) {
 
   } else if (platformLower === 'docker') {
     // Check if docker exists
+    const dockerCmd = process.platform === 'win32' ? 'where docker' : 'which docker';
     try {
-      execSync('which docker', { stdio: 'ignore' });
+      execSync(dockerCmd, { stdio: 'ignore' });
     } catch (err) {
       console.error('❌ docker not found.');
       console.error('   Please install Docker first: https://docs.docker.com/get-docker/');

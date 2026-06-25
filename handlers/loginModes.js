@@ -25,6 +25,15 @@ const LOGIN_MODES = [
     chatPath: '/v1/chat/completions',
     description: 'Ollama Local proxy',
     loginDescription: 'Connect to Ollama Local'
+  },
+  {
+    mode: 'deepseek',
+    port: 3006,
+    healthPath: '/health',
+    modelsPath: '/v1/models',
+    chatPath: '/v1/chat/completions',
+    description: 'DeepSeek proxy',
+    loginDescription: 'Connect to DeepSeek'
   }
 ];
 

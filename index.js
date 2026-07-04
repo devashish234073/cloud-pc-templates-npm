@@ -9,7 +9,7 @@ const { checkLoginHealth } = require('./handlers/loginHealth');
 const { getLoginModes } = require('./handlers/loginModes');
 const { aiChat } = require('./handlers/chat');
 const { launchWebsite } = require('./handlers/launch');
-const { listAgents, getAgentDetails, startAllOnAgents } = require('./handlers/agents');
+const { listAgents, getAgentDetails, startAllOnAgents, startVectorDb } = require('./handlers/agents');
 
 // Command tree structure
 const commandTree = {
@@ -76,6 +76,7 @@ function help() {
   console.log('  npx cloud-pc-templates ai agents startAllOn linux                 Download and start all agents (Linux)');
   console.log('  npx cloud-pc-templates ai agents startAllOn android               Download and start all agents (Termux/Android)');
   console.log('  npx cloud-pc-templates ai agents startAllOn docker                Start all agents via Docker container');
+  console.log('  npx cloud-pc-templates ai agents startVectorDb                    Download and start the VectorDB server');
 }
 
 function buildLoginModeSubcommands() {
@@ -112,12 +113,13 @@ async function aiLogin(mode) {
 // AI Agents function
 async function aiAgents(remainingArgs) {
   if (!remainingArgs || remainingArgs.length === 0) {
-    console.log('Usage: npx cloud-pc-templates ai agents <list|startAllOn|agent-name>');
-    console.log('  list               List all available agents');
-    console.log('  startAllOn linux     Download and start all agents (Linux)');
-    console.log('  startAllOn android   Download and start all agents (Termux/Android)');
-    console.log('  startAllOn docker    Start all agents via Docker container');
-    console.log('  "agent-name"       Show details for a specific agent');
+    console.log('Usage: npx cloud-pc-templates ai agents <list|startAllOn|startVectorDb|agent-name>');
+    console.log('  list                   List all available agents');
+    console.log('  startAllOn linux         Download and start all agents (Linux)');
+    console.log('  startAllOn android       Download and start all agents (Termux/Android)');
+    console.log('  startAllOn docker        Start all agents via Docker container');
+    console.log('  startVectorDb            Download and start the VectorDB server');
+    console.log('  "agent-name"           Show details for a specific agent');
     return;
   }
   
@@ -127,6 +129,8 @@ async function aiAgents(remainingArgs) {
     await listAgents();
   } else if (subcommand === 'startallon') {
     await startAllOnAgents(remainingArgs[1]);
+  } else if (subcommand === 'startvectordb') {
+    await startVectorDb();
   } else {
     await getAgentDetails(remainingArgs[0]);
   }

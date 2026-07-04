@@ -7,6 +7,7 @@ const os = require('os');
 const AGENTS_REGISTRY_URL = 'https://raw.githubusercontent.com/devashish234073/cloud-pc-templates-marketplace/refs/heads/main/JS-AGENTS/agent-registry.json';
 const SETUP_SCRIPT_URL = 'https://raw.githubusercontent.com/devashish234073/cloud-pc-templates-marketplace/main/cloud-pc-templates/setup_and_run.sh';
 const TERMUX_SETUP_SCRIPT_URL = 'https://raw.githubusercontent.com/devashish234073/cloud-pc-templates-marketplace/refs/heads/main/cloud-pc-templates/setup_and_run_in_termux.sh';
+const VECTOR_DB_SCRIPT_URL = 'https://raw.githubusercontent.com/devashish234073/cloud-pc-templates-marketplace/refs/heads/main/misc/vectorDb/vectorDbServer.js';
 
 async function fetchAgentsRegistry() {
   try {
@@ -209,8 +210,56 @@ async function startAllOnAgents(platform) {
   }
 }
 
+async function startVectorDb() {
+  // Check node is available (it always is since we're running in node, but be explicit)
+  console.log('Downloading VectorDB server script...\n');
+
+  const tempFile = path.join(os.tmpdir(), 'cloud-pc-vectorDbServer.js');
+
+  await new Promise((resolve, reject) => {
+    const file = fs.createWriteStream(tempFile);
+    https.get(VECTOR_DB_SCRIPT_URL, (res) => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        // Follow one redirect
+        https.get(res.headers.location, (res2) => {
+          res2.pipe(file);
+          file.on('finish', () => { file.close(); resolve(); });
+        }).on('error', reject);
+        return;
+      }
+      if (res.statusCode !== 200) {
+        reject(new Error(`Failed to download vectorDbServer.js: ${res.statusCode} ${res.statusMessage}`));
+        return;
+      }
+      res.pipe(file);
+      file.on('finish', () => { file.close(); resolve(); });
+    }).on('error', reject);
+  });
+
+  console.log('✓ Script downloaded. Starting VectorDB server...\n');
+
+  const child = spawn(process.execPath, [tempFile], {
+    stdio: 'inherit',
+    cwd: process.cwd()
+  });
+
+  child.on('error', (err) => {
+    console.error(`❌ Failed to start VectorDB server: ${err.message}`);
+    process.exit(1);
+  });
+
+  child.on('close', (code) => {
+    try { fs.unlinkSync(tempFile); } catch (e) { /* ignore */ }
+    if (code !== 0) {
+      console.error(`\n❌ VectorDB server exited with code ${code}`);
+      process.exit(code);
+    }
+  });
+}
+
 module.exports = {
   listAgents,
   getAgentDetails,
-  startAllOnAgents
+  startAllOnAgents,
+  startVectorDb
 };

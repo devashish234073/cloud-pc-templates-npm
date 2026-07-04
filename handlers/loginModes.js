@@ -34,6 +34,15 @@ const LOGIN_MODES = [
     chatPath: '/v1/chat/completions',
     description: 'DeepSeek proxy',
     loginDescription: 'Connect to DeepSeek'
+  },
+  {
+    mode: 'sarvam',
+    port: 3007,
+    healthPath: '/health',
+    modelsPath: '/v1/models',
+    chatPath: '/v1/chat/completions',
+    description: 'Sarvam proxy',
+    loginDescription: 'Connect to Sarvam'
   }
 ];
 

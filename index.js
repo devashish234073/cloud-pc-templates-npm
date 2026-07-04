@@ -4,6 +4,7 @@ const { checkAndLoginOllamaCloud } = require('./handlers/ollamacloud');
 const { checkAndLoginOllamaLocal } = require('./handlers/ollamalocal');
 const { checkAndLoginHuggingFace } = require('./handlers/huggingface');
 const { checkAndLoginDeepSeek } = require('./handlers/deepseek');
+const { checkAndLoginSarvam } = require('./handlers/sarvam');
 const { checkLoginHealth } = require('./handlers/loginHealth');
 const { getLoginModes } = require('./handlers/loginModes');
 const { aiChat } = require('./handlers/chat');
@@ -103,6 +104,8 @@ async function aiLogin(mode) {
     await checkAndLoginHuggingFace();
   } else if (mode === 'deepseek') {
     await checkAndLoginDeepSeek();
+  } else if (mode === 'sarvam') {
+    await checkAndLoginSarvam();
   }
 }
 

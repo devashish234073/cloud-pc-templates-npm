@@ -1,9 +1,7 @@
 const http = require('http');
 const https = require('https');
-const fs = require('fs');
-const path = require('path');
 const { spawn } = require('child_process');
-const os = require('os');
+const { fetchFromGithub } = require('./github');
 
 function promptForApiKey() {
   return new Promise((resolve) => {
@@ -48,14 +46,7 @@ function checkHealthEndpoint(endpoint) {
 }
 
 async function downloadAndRunProxy(endpoint) {
-  const url = 'https://raw.githubusercontent.com/devashish234073/cloud-pc-templates-marketplace/refs/heads/main/JS-PROXIES/sarvam-proxy.js';
-  const tempFile = path.join(os.tmpdir(), 'sarvam-proxy.js');
-
-  await new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(tempFile);
-    https.get(url, (res) => { res.pipe(file); file.on('finish', () => { file.close(); resolve(); }); }).on('error', reject);
-  });
-
+  const tempFile = await fetchFromGithub('proxy:sarvam');
   const apiKey = await promptForApiKey();
 
   return new Promise((resolve, reject) => {

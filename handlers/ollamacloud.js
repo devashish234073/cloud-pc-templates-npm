@@ -1,9 +1,7 @@
 const http = require('http');
 const https = require('https');
-const fs = require('fs');
-const path = require('path');
 const { spawn } = require('child_process');
-const os = require('os');
+const { fetchFromGithub } = require('./github');
 
 // Function to get masked API key input
 function promptForApiKey() {
@@ -77,23 +75,9 @@ function checkHealthEndpoint(endpoint) {
   });
 }
 
-// Function to download and run the proxy
 async function downloadAndRunProxy(endpoint) {
-  const url = 'https://raw.githubusercontent.com/devashish234073/cloud-pc-templates-marketplace/refs/heads/main/JS-PROXIES/ollama-proxy.js';
-  const tempFile = path.join(os.tmpdir(), 'ollama-proxy.js');
-  
-  // Download the file
-  await new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(tempFile);
-    https.get(url, (res) => {
-      res.pipe(file);
-      file.on('finish', () => {
-        file.close();
-        resolve();
-      });
-    }).on('error', reject);
-  });
-  
+  const tempFile = await fetchFromGithub('proxy:ollamacloud');
+
   // Get API key from user
   const apiKey = await promptForApiKey();
   

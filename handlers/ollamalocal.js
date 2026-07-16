@@ -1,9 +1,7 @@
 const http = require('http');
 const https = require('https');
-const fs = require('fs');
-const path = require('path');
 const { spawn } = require('child_process');
-const os = require('os');
+const { fetchFromGithub } = require('./github');
 
 const OLLAMA_PORT = 11434;
 const PROXY_PORT = 3005;
@@ -31,23 +29,9 @@ function checkOllamaHealth() {
   });
 }
 
-// Function to download and run the offline proxy
 async function downloadAndRunProxy() {
-  const url = 'https://raw.githubusercontent.com/devashish234073/cloud-pc-templates-marketplace/refs/heads/main/JS-PROXIES/ollamaoffline-proxy.js';
-  const tempFile = path.join(os.tmpdir(), 'ollamaoffline-proxy.js');
-  
-  // Download the file
-  await new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(tempFile);
-    https.get(url, (res) => {
-      res.pipe(file);
-      file.on('finish', () => {
-        file.close();
-        resolve();
-      });
-    }).on('error', reject);
-  });
-  
+  const tempFile = await fetchFromGithub('proxy:ollamalocal');
+
   // Run the proxy (no API key needed)
   return new Promise((resolve, reject) => {
     const child = spawn('node', [tempFile]);

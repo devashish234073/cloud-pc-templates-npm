@@ -3,22 +3,11 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-
-const AGENTS_REGISTRY_URL = 'https://raw.githubusercontent.com/devashish234073/cloud-pc-templates-marketplace/refs/heads/main/JS-AGENTS/agent-registry.json';
-const SETUP_SCRIPT_URL = 'https://raw.githubusercontent.com/devashish234073/cloud-pc-templates-marketplace/main/cloud-pc-templates/setup_and_run.sh';
-const TERMUX_SETUP_SCRIPT_URL = 'https://raw.githubusercontent.com/devashish234073/cloud-pc-templates-marketplace/refs/heads/main/cloud-pc-templates/setup_and_run_in_termux.sh';
-const VECTOR_DB_SCRIPT_URL = 'https://raw.githubusercontent.com/devashish234073/cloud-pc-templates-marketplace/refs/heads/main/misc/vectorDb/vectorDbServer.js';
+const { fetchFromGithub } = require('./github');
 
 async function fetchAgentsRegistry() {
-  try {
-    const response = await fetch(AGENTS_REGISTRY_URL);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch agents registry: ${response.status} ${response.statusText}`);
-    }
-    return await response.json();
-  } catch (error) {
-    throw new Error(`Failed to fetch agents registry: ${error.message}`);
-  }
+  const filePath = await fetchFromGithub('agents:registry');
+  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
 async function listAgents() {
@@ -113,28 +102,12 @@ async function startAllOnAgents(platform) {
       process.exit(1);
     }
 
-    const scriptUrl = platformLower === 'linux' ? SETUP_SCRIPT_URL : TERMUX_SETUP_SCRIPT_URL;
+    const scriptKey = platformLower === 'linux' ? 'script:linux' : 'script:android';
     const scriptName = platformLower === 'linux' ? 'setup_and_run.sh' : 'setup_and_run_in_termux.sh';
 
     console.log(`✓ bash found. Downloading and running ${scriptName}...\n`);
 
-    // Download script to a temp file
-    const tempFile = path.join(os.tmpdir(), `cloud-pc-${scriptName}`);
-
-    await new Promise((resolve, reject) => {
-      const file = fs.createWriteStream(tempFile);
-      https.get(scriptUrl, (res) => {
-        if (res.statusCode !== 200) {
-          reject(new Error(`Failed to download setup script: ${res.statusCode} ${res.statusMessage}`));
-          return;
-        }
-        res.pipe(file);
-        file.on('finish', () => {
-          file.close();
-          resolve();
-        });
-      }).on('error', reject);
-    });
+    const tempFile = await fetchFromGithub(scriptKey);
 
     // Make the script executable
     fs.chmodSync(tempFile, '755');
@@ -211,34 +184,13 @@ async function startAllOnAgents(platform) {
 }
 
 async function startVectorDb() {
-  // Check node is available (it always is since we're running in node, but be explicit)
   console.log('Downloading VectorDB server script...\n');
 
-  const tempFile = path.join(os.tmpdir(), 'cloud-pc-vectorDbServer.js');
-
-  await new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(tempFile);
-    https.get(VECTOR_DB_SCRIPT_URL, (res) => {
-      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        // Follow one redirect
-        https.get(res.headers.location, (res2) => {
-          res2.pipe(file);
-          file.on('finish', () => { file.close(); resolve(); });
-        }).on('error', reject);
-        return;
-      }
-      if (res.statusCode !== 200) {
-        reject(new Error(`Failed to download vectorDbServer.js: ${res.statusCode} ${res.statusMessage}`));
-        return;
-      }
-      res.pipe(file);
-      file.on('finish', () => { file.close(); resolve(); });
-    }).on('error', reject);
-  });
+  const scriptFile = await fetchFromGithub('script:vectordb');
 
   console.log('✓ Script downloaded. Starting VectorDB server...\n');
 
-  const child = spawn(process.execPath, [tempFile], {
+  const child = spawn(process.execPath, [scriptFile], {
     stdio: 'inherit',
     cwd: process.cwd()
   });
@@ -249,7 +201,6 @@ async function startVectorDb() {
   });
 
   child.on('close', (code) => {
-    try { fs.unlinkSync(tempFile); } catch (e) { /* ignore */ }
     if (code !== 0) {
       console.error(`\n❌ VectorDB server exited with code ${code}`);
       process.exit(code);

@@ -243,7 +243,7 @@ npx cloud-pc-templates ai agents startAllOn <platform>
 |-----------|---------|-------------|
 | `linux`   | `npx cloud-pc-templates ai agents startAllOn linux` | Downloads and runs `setup_and_run.sh`. Requires `bash` and an Ubuntu/Debian-based system. |
 | `android` | `npx cloud-pc-templates ai agents startAllOn android` | Downloads and runs `setup_and_run_in_termux.sh` for Termux on Android. Requires `bash`. |
-| `docker`  | `npx cloud-pc-templates ai agents startAllOn docker` | Runs the pre-built Docker image `devashish234073/cloud-pc-templates-agents` with ports 3005–3050 and 4200 mapped. Requires `docker`. |
+| `docker`  | `npx cloud-pc-templates ai agents startAllOn docker` | Runs the pre-built Docker image `devashish234073/cloud-pc-templates-agents` with ports 3005–3100 and 4200 mapped. Requires `docker`. |
 
 **Linux example:**
 ```bash

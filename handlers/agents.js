@@ -153,7 +153,7 @@ async function startAllOnAgents(platform) {
 
     const child = spawn('docker', [
       'run',
-      '-p', '3005-3050:3005-3050',
+      '-p', '3005-3100:3005-3100',
       '-p', '4200:4200',
       'devashish234073/cloud-pc-templates-agents'
     ], {

@@ -2,7 +2,7 @@
 
 Cloud PC Templates is a command-line tool for managing cloud PC configurations and AI operations.
 
-## Update 11 Aug 06
+## Update 11 Aug 2026
 
 Added an sdk to interact with the running login modes
 
@@ -41,6 +41,8 @@ async function main() {
 }
 main();
 ```
+### The second argument for sdk.chat() is model id passing that null takes the first model from the list of model returned by the login mode.
+
 ## Installation
 
 ```bash

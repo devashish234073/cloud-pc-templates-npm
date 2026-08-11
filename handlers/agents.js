@@ -13,26 +13,26 @@ async function fetchAgentsRegistry() {
 async function listAgents() {
   try {
     const agents = await fetchAgentsRegistry();
-    
+
     if (!Array.isArray(agents) || agents.length === 0) {
       console.log('No agents found in registry');
       return;
     }
-    
+
     console.log('\nAvailable Agents\n');
     console.log('─'.repeat(80));
-    
+
     agents.forEach((agent) => {
       const idStr = `ID: ${agent.id}`.padEnd(40);
       const nameStr = `Name: ${agent.name}`.padEnd(40);
       const portStr = `Port: ${agent.port || 'N/A'}`;
-      
+
       console.log(idStr);
       console.log(nameStr);
       console.log(portStr);
       console.log('─'.repeat(80));
     });
-    
+
   } catch (error) {
     console.error(`Error: ${error.message}`);
     process.exit(1);
@@ -42,27 +42,27 @@ async function listAgents() {
 async function getAgentDetails(agentId) {
   try {
     const agents = await fetchAgentsRegistry();
-    
+
     if (!Array.isArray(agents)) {
       console.error('Invalid registry format');
       process.exit(1);
     }
-    
+
     const agent = agents.find(a => a.id.toLowerCase() === agentId.toLowerCase());
-    
+
     if (!agent) {
       console.error(`❌ Agent not found: "${agentId}"`);
       console.log('\nAvailable agents:');
       agents.forEach(a => console.log(`  - ${a.id}`));
       process.exit(1);
     }
-    
+
     console.log(`\nAgent Details: ${agent.name}\n`);
     console.log('─'.repeat(80));
-    
+
     Object.entries(agent).forEach(([key, value]) => {
       const displayKey = key.charAt(0).toUpperCase() + key.slice(1);
-      
+
       if (typeof value === 'string' && value.length > 70) {
         console.log(`${displayKey}:`);
         console.log(`  ${value}`);
@@ -70,9 +70,9 @@ async function getAgentDetails(agentId) {
         console.log(`${displayKey}: ${value}`);
       }
     });
-    
+
     console.log('─'.repeat(80) + '\n');
-    
+
   } catch (error) {
     console.error(`Error: ${error.message}`);
     process.exit(1);
@@ -184,11 +184,19 @@ async function startAllOnAgents(platform) {
 }
 
 async function startVectorDb() {
-  console.log('Downloading VectorDB server script...\n');
+  const localScriptPath = path.join(process.cwd(), 'node_modules/cloud-pc-templates-marketplace/misc/vectorDb/vectorDbServer.js');
 
-  const scriptFile = await fetchFromGithub('script:vectordb');
+  let scriptFile;
+  if (fs.existsSync(localScriptPath)) {
+    console.log('✓ Found local VectorDB script from node_modules, using it directly...\n');
+    scriptFile = localScriptPath;
+  } else {
+    console.log('Downloading VectorDB server script...\n');
+    scriptFile = await fetchFromGithub('script:vectordb');
+    console.log('✓ Script downloaded.\n');
+  }
 
-  console.log('✓ Script downloaded. Starting VectorDB server...\n');
+  console.log('Starting VectorDB server...\n');
 
   const child = spawn(process.execPath, [scriptFile], {
     stdio: 'inherit',

@@ -1,6 +1,6 @@
 {
   "name": "cloud-pc-templates",
-  "version": "6.1.1",
+  "version": "6.1.9",
   "description": "",
   "main": "index.js",
   "bin": {

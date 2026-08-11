@@ -42,9 +42,11 @@ export class Sdk {
             }
             let response = await this.loginMode.infer(this.selectedModel, this.messageHistory, onStream);
             this.messageHistory.push({ role: "assistant", content: response });
+            return response;
         } catch (e) {
             this.logger.log(e);
             this.messageHistory.push({ role: "assistant", content: String(e) });
+            return String(e);
         }
     }
 

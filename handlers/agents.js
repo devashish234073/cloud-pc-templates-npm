@@ -1,8 +1,5 @@
 const { spawn, execSync } = require('child_process');
-const https = require('https');
 const fs = require('fs');
-const path = require('path');
-const os = require('os');
 const { fetchFromGithub } = require('./github');
 
 async function fetchAgentsRegistry() {
@@ -105,15 +102,20 @@ async function startAllOnAgents(platform) {
     const scriptKey = platformLower === 'linux' ? 'script:linux' : 'script:android';
     const scriptName = platformLower === 'linux' ? 'setup_and_run.sh' : 'setup_and_run_in_termux.sh';
 
-    console.log(`✓ bash found. Downloading and running ${scriptName}...\n`);
+    console.log(`✓ bash found. Running ${scriptName} from installed package...\n`);
 
-    const tempFile = await fetchFromGithub(scriptKey);
+    const scriptFile = await fetchFromGithub(scriptKey);
 
-    // Make the script executable
-    fs.chmodSync(tempFile, '755');
+    // Make the script executable, in place inside node_modules
+    try {
+      fs.chmodSync(scriptFile, '755');
+    } catch (err) {
+      console.error(`❌ Failed to set executable permission on ${scriptFile}: ${err.message}`);
+      process.exit(1);
+    }
 
-    // Execute the script with bash
-    const child = spawn('bash', [tempFile], {
+    // Execute the script with bash, directly from node_modules
+    const child = spawn('bash', [scriptFile], {
       stdio: 'inherit',
       cwd: process.cwd()
     });
@@ -124,12 +126,6 @@ async function startAllOnAgents(platform) {
     });
 
     child.on('close', (code) => {
-      // Clean up temp file
-      try {
-        fs.unlinkSync(tempFile);
-      } catch (e) {
-        // ignore cleanup errors
-      }
       if (code !== 0) {
         console.error(`\n❌ Setup script exited with code ${code}`);
         process.exit(code);
@@ -184,17 +180,8 @@ async function startAllOnAgents(platform) {
 }
 
 async function startVectorDb() {
-  const localScriptPath = path.join(process.cwd(), 'node_modules/cloud-pc-templates-marketplace/misc/vectorDb/vectorDbServer.js');
-
-  let scriptFile;
-  if (fs.existsSync(localScriptPath)) {
-    console.log('✓ Found local VectorDB script from node_modules, using it directly...\n');
-    scriptFile = localScriptPath;
-  } else {
-    console.log('Downloading VectorDB server script...\n');
-    scriptFile = await fetchFromGithub('script:vectordb');
-    console.log('✓ Script downloaded.\n');
-  }
+  const scriptFile = await fetchFromGithub('script:vectordb');
+  console.log('✓ Found VectorDB script in installed package, using it directly...\n');
 
   console.log('Starting VectorDB server...\n');
 

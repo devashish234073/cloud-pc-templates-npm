@@ -14,7 +14,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "cloud-pc-templates-marketplace": "^1.4.1",
+    "cloud-pc-templates-marketplace": "^1.4.2",
     "cloud-pc-templates-sdk": "^4.0.5"
   }
 }

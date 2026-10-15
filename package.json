@@ -1,6 +1,6 @@
 {
   "name": "cloud-pc-templates",
-  "version": "7.6.0",
+  "version": "7.6.1",
   "description": "",
   "main": "index.js",
   "bin": {
@@ -14,7 +14,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "cloud-pc-templates-marketplace": "^1.4.2",
+    "cloud-pc-templates-marketplace": "^1.4.3",
     "cloud-pc-templates-sdk": "^4.0.5"
   }
 }

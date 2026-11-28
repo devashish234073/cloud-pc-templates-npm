@@ -1,0 +1,16 @@
+{
+  "name": "js-proxies-express",
+  "version": "1.0.0",
+  "description": "Unified Express proxy server for DeepSeek, Hugging Face, Sarvam, Ollama Cloud, and local Ollama",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "stop": "node scripts/stop.js",
+    "status": "node scripts/status.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "license": "ISC"
+}

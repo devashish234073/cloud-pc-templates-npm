@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Route Tester</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 18px; font-family: Inter, system-ui, sans-serif; background: #111827; color: #edf2ff; }
+    h2 { margin: 0 0 14px; }
+    label { display: block; margin: 10px 0 6px; color: #b9c3da; font-size: 13px; }
+    input, textarea, select { width: 100%; border: 1px solid #334155; background: #0b1220; color: #f8fafc; border-radius: 8px; padding: 10px; font: inherit; }
+    textarea { min-height: 90px; resize: vertical; }
+    .row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
+    .stream { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: #dfe6f7; }
+    .stream input { width: auto; }
+    button { border: 0; border-radius: 8px; padding: 10px 14px; font-weight: 700; cursor: pointer; background: #3a78ff; color: white; }
+    button:disabled { opacity: .55; cursor: wait; }
+    pre { min-height: 180px; max-height: 360px; overflow: auto; white-space: pre-wrap; word-break: break-word; background: #080d18; border: 1px solid #334155; border-radius: 8px; padding: 12px; }
+  </style>
+</head>
+<body>
+  <h2 id="title">Route Tester</h2>
+  <div class="row">
+    <div>
+      <label for="model">Model</label>
+      <select id="model"><option value="">Loading models...</option></select>
+    </div>
+    <button id="refresh" type="button">Refresh</button>
+  </div>
+
+  <label for="prompt">Prompt</label>
+  <textarea id="prompt">who are you?</textarea>
+
+  <label class="stream"><input id="streaming" type="checkbox"> Streaming response</label>
+  <div style="margin-top:12px"><button id="send" type="button">Send test</button></div>
+
+  <label for="output">Response</label>
+  <pre id="output">Ready.</pre>
+
+  <script src="test.js"></script>
+</body>
+</html>

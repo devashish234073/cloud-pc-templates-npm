@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Unified Proxy Routes</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b1020; --panel:#151d31; --line:#2b3654; --on:#35d07f; --off:#ff6b72; }
+    * { box-sizing:border-box; } body { margin:0; font-family:Inter,system-ui,sans-serif; background:linear-gradient(135deg,#09111f,#11182b); color:#edf2ff; }
+    main { max-width:1100px; margin:0 auto; padding:32px 20px; } h1 { margin:0 0 6px; } .sub { color:#9eabc8; margin-bottom:24px; }
+    table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+    th,td { padding:14px; border-bottom:1px solid var(--line); text-align:left; } th { color:#b9c3da; font-size:13px; }
+    tr:last-child td { border-bottom:0; } .badge { display:inline-block; min-width:62px; text-align:center; border-radius:999px; padding:5px 10px; font-weight:700; }
+    .off { background:#4b2027; color:var(--off); } .on { background:#173d2d; color:var(--on); }
+    input { width:220px; max-width:100%; border:1px solid var(--line); background:#0d1425; color:white; border-radius:7px; padding:9px 10px; }
+    button { border:0; border-radius:7px; padding:9px 12px; cursor:pointer; font-weight:700; }
+    .enable { background:#3a78ff; color:white; } .disable { background:#343e56; color:#dfe6f7; margin-left:6px; }
+    .route { color:#86aaff; font-family:monospace; } #message { min-height:24px; color:#aebad2; }
+    .health { display:inline-block; min-width:58px; text-align:center; border-radius:999px; padding:5px 9px; font-weight:700; }
+    .health-up { background:#173d2d; color:var(--on); } .health-down { background:#4b2027; color:var(--off); }
+    .test { background:#22a06b; color:white; margin-left:6px; } .test[hidden] { display:none; }
+    dialog { width:min(760px, calc(100vw - 32px)); height:min(720px, calc(100vh - 32px)); border:1px solid var(--line); border-radius:14px; padding:0; background:#111827; color:white; }
+    dialog::backdrop { background:rgba(3,7,18,.78); } .dialog-head { height:48px; display:flex; align-items:center; justify-content:flex-end; padding:8px 10px; border-bottom:1px solid var(--line); }
+    .close { background:#343e56; color:white; } iframe { width:100%; height:calc(100% - 48px); border:0; background:#111827; }
+  </style>
+</head>
+<body><main>
+  <h1>Unified API Proxy</h1>
+  <div class="sub">One Express server · all vendor routes start disabled</div>
+  <div id="message"></div>
+  <table><thead><tr><th>Vendor</th><th>Prefix</th><th>Status</th><th>Health</th><th>API key</th><th>Control</th></tr></thead><tbody id="rows"></tbody></table>
+</main>
+<dialog id="testDialog">
+  <div class="dialog-head"><button class="close" type="button" onclick="closeTest()">Close</button></div>
+  <iframe id="testFrame" title="Proxy route tester"></iframe>
+</dialog>
+<script>
+async function getHealth(id, enabled) {
+  if (!enabled) return false;
+  try {
+    const response = await fetch(`/${id}/v1/models`, { cache: 'no-store' });
+    if (!response.ok) return false;
+    await response.json();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function refresh() {
+  const data = await fetch('/api/routes/status').then(r => r.json());
+  const entries = Object.entries(data.routes);
+  const health = await Promise.all(entries.map(([id, route]) => getHealth(id, route.enabled)));
+
+  document.getElementById('rows').innerHTML = entries.map(([id, route], index) => {
+    const isUp = health[index];
+    return `
+    <tr>
+      <td>${route.name}</td><td class="route">/${id}</td>
+      <td><span class="badge ${route.enabled ? 'on' : 'off'}">${route.enabled ? 'ON' : 'OFF'}</span></td>
+      <td><span class="health ${isUp ? 'health-up' : 'health-down'}">${isUp ? 'UP' : 'DOWN'}</span></td>
+      <td>${route.requiresApiKey ? `<input id="key-${id}" type="password" placeholder="${route.apiKeyConfigured ? 'API key configured' : 'Enter API key'}">` : 'Not required'}</td>
+      <td><button class="enable" onclick="enableRoute('${id}')">Turn on</button><button class="disable" onclick="disableRoute('${id}')">Turn off</button><button class="test" onclick="openTest('${id}', '${route.name}')" ${isUp ? '' : 'hidden'}>Test</button></td>
+    </tr>`;
+  }).join('');
+}
+async function enableRoute(id) {
+  const input = document.getElementById(`key-${id}`); const apiKey = input ? input.value : undefined;
+  const response = await fetch(`/api/routes/${id}/enable`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({apiKey}) });
+  const data = await response.json(); document.getElementById('message').textContent = data.error || `${id} route is ON`;
+  refresh();
+}
+async function disableRoute(id) {
+  await fetch(`/api/routes/${id}/disable`, { method:'POST', headers:{'Content-Type':'application/json'} });
+  document.getElementById('message').textContent = `${id} route is OFF`; refresh();
+}
+function openTest(id, name) {
+  const frame = document.getElementById('testFrame');
+  frame.src = `/test.html?route=${encodeURIComponent(id)}&name=${encodeURIComponent(name)}`;
+  document.getElementById('testDialog').showModal();
+}
+function closeTest() {
+  document.getElementById('testDialog').close();
+}
+refresh(); setInterval(refresh, 5000);
+</script></body></html>

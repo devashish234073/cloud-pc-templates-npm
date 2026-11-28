@@ -24,17 +24,26 @@
     dialog { width:min(760px, calc(100vw - 32px)); height:min(720px, calc(100vh - 32px)); border:1px solid var(--line); border-radius:14px; padding:0; background:#111827; color:white; }
     dialog::backdrop { background:rgba(3,7,18,.78); } .dialog-head { height:48px; display:flex; align-items:center; justify-content:flex-end; padding:8px 10px; border-bottom:1px solid var(--line); }
     .close { background:#343e56; color:white; } iframe { width:100%; height:calc(100% - 48px); border:0; background:#111827; }
+    .toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    .show-log { background:#343e56; color:#dfe6f7; } #logContent { margin:0; padding:16px; height:calc(100% - 48px); overflow:auto; white-space:pre-wrap; word-break:break-word; font-family:monospace; font-size:12px; background:#0d1425; color:#dfe6f7; }
   </style>
 </head>
 <body><main>
   <h1>Cloud PC Templates</h1>
-  <div class="sub">One Express server · all vendor routes start disabled</div>
+  <div class="toolbar">
+    <div class="sub">One Express server · all vendor routes start disabled</div>
+    <button class="show-log" type="button" onclick="showLog()">Show Log</button>
+  </div>
   <div id="message"></div>
   <table><thead><tr><th>Vendor</th><th>Prefix</th><th>Status</th><th>Health</th><th>API key</th><th>Control</th></tr></thead><tbody id="rows"></tbody></table>
 </main>
 <dialog id="testDialog">
   <div class="dialog-head"><button class="close" type="button" onclick="closeTest()">Close</button></div>
   <iframe id="testFrame" title="Proxy route tester"></iframe>
+</dialog>
+<dialog id="logDialog">
+  <div class="dialog-head"><button class="close" type="button" onclick="closeLog()">Close</button></div>
+  <pre id="logContent">Loading...</pre>
 </dialog>
 <script>
 async function getHealth(id, enabled) {
@@ -83,6 +92,21 @@ function openTest(id, name) {
 }
 function closeTest() {
   document.getElementById('testDialog').close();
+}
+async function showLog() {
+  const dialog = document.getElementById('logDialog');
+  const content = document.getElementById('logContent');
+  content.textContent = 'Loading...';
+  dialog.showModal();
+  try {
+    const response = await fetch('/api/log', { cache: 'no-store' });
+    content.textContent = await response.text() || 'No LLM requests have been logged yet.';
+  } catch (error) {
+    content.textContent = `Could not load log: ${error.message}`;
+  }
+}
+function closeLog() {
+  document.getElementById('logDialog').close();
 }
 refresh(); setInterval(refresh, 5000);
 </script></body></html>

@@ -1,7 +1,10 @@
 const path = require('path');
 const express = require('express');
 const routeState = require('./routes/routeState');
+const llmLogger = require('./routes/logger');
 const fs = require('fs');
+
+llmLogger.initialize();
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -20,6 +23,8 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(llmLogger.captureLlmTraffic);
+
 app.use('/deepseek', require('./routes/deepseek'));
 app.use('/huggingface', require('./routes/huggingface'));
 app.use('/sarvam', require('./routes/sarvam'));
@@ -28,6 +33,10 @@ app.use('/ollamaoffline', require('./routes/ollamaoffline'));
 
 app.get('/api/routes/status', (req, res) => {
   res.json({ routes: routeState.getAllStatus() });
+});
+
+app.get('/api/log', (req, res) => {
+  res.type('text/plain').send(llmLogger.read());
 });
 
 app.post('/api/routes/:id/enable', (req, res) => {

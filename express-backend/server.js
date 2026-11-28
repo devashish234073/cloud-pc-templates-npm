@@ -62,7 +62,7 @@ app.use((req, res) => res.status(404).json({ error: 'Not Found' }));
 
 const server = app.listen(PORT, () => {
   fs.writeFileSync(pidFile, String(process.pid));
-  console.log(`Unified proxy server running at http://localhost:${PORT}`);
+  console.log(`Cloud PC Templates server running at http://localhost:${PORT}`);
   console.log('All routes start OFF. Use / or /api/routes/status to manage them.');
   console.log('Press Ctrl+C or run npm run stop to stop the server.');
 });

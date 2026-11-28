@@ -1,6 +1,6 @@
 # JS Proxies Express
 
-Unified Express server that exposes the existing proxy vendors on different prefixes.
+Cloud Pc Templates server that exposes the existing proxy vendors on different prefixes.
 
 ## Start
 

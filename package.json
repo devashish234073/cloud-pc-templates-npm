@@ -7,6 +7,10 @@
     "cloud-pc-templates": "index.js"
   },
   "scripts": {
+    "start": "node express-backend/server.js",
+    "stop": "node express-backend/scripts/stop.js",
+    "status": "node express-backend/scripts/status.js",
+    "dev": "node --watch express-backend/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -15,6 +19,7 @@
   "type": "commonjs",
   "dependencies": {
     "cloud-pc-templates-marketplace": "^1.4.8",
-    "cloud-pc-templates-sdk": "^4.1.0"
+    "cloud-pc-templates-sdk": "^4.1.0",
+    "express": "^5.3.0"
   }
 }

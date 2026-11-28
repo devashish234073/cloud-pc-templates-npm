@@ -4,10 +4,14 @@ Unified Express server that exposes the existing proxy vendors on different pref
 
 ## Start
 
+Run these commands from the root `cloud-pc-templates` directory:
+
 ```bash
 npm install
 npm start
 ```
+
+The Express backend is a subproject and uses the root `package.json` and root `node_modules`.
 
 Open `http://localhost:3000`. All vendor routes are OFF initially.
 
